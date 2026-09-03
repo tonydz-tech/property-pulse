@@ -1,0 +1,128 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum PropertyStatus {
+  OCCUPIED
+  VACANT
+}
+
+enum ScreeningStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETE
+}
+
+enum ScreeningRecommendation {
+  APPROVE
+  CAUTION
+  DECLINE
+}
+
+enum MaintenancePriority {
+  LOW
+  STANDARD
+  URGENT
+}
+
+enum RentPaymentStatus {
+  PAID
+  LATE
+  PENDING
+}
+
+model Landlord {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+
+  properties Property[]
+
+  @@map("landlords")
+}
+
+model Property {
+  id            String         @id @default(cuid())
+  landlordId    String
+  address       String
+  monthlyRent   Decimal        @db.Decimal(10, 2)
+  status        PropertyStatus @default(VACANT)
+  leaseEndDate  DateTime?
+  createdAt     DateTime       @default(now())
+
+  landlord     Landlord               @relation(fields: [landlordId], references: [id], onDelete: Cascade)
+  tenants      Tenant[]
+  applications ScreeningApplication[]
+  maintenance  MaintenanceRequest[]
+  rentPayments RentPayment[]
+
+  @@index([landlordId])
+  @@map("properties")
+}
+
+model Tenant {
+  id         String    @id @default(cuid())
+  propertyId String
+  name       String
+  email      String
+  leaseStart DateTime
+  leaseEnd   DateTime?
+  createdAt  DateTime  @default(now())
+
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@index([propertyId])
+  @@map("tenants")
+}
+
+model ScreeningApplication {
+  id               String                   @id @default(cuid())
+  propertyId       String
+  applicantName    String
+  applicantEmail   String
+  status           ScreeningStatus          @default(PENDING)
+  creditScore      Int?
+  incomeMultiplier Decimal?                 @db.Decimal(4, 2)
+  recommendation   ScreeningRecommendation?
+  createdAt        DateTime                 @default(now())
+
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@index([propertyId])
+  @@map("screening_applications")
+}
+
+model MaintenanceRequest {
+  id          String              @id @default(cuid())
+  propertyId  String
+  description String
+  priority    MaintenancePriority @default(STANDARD)
+  filedDate   DateTime            @default(now())
+  resolved    Boolean             @default(false)
+
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@index([propertyId])
+  @@map("maintenance_requests")
+}
+
+model RentPayment {
+  id         String            @id @default(cuid())
+  propertyId String
+  amount     Decimal           @db.Decimal(10, 2)
+  dueDate    DateTime
+  paidDate   DateTime?
+  status     RentPaymentStatus @default(PENDING)
+
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@index([propertyId])
+  @@map("rent_payments")
+}
