@@ -1,6 +1,7 @@
 import { PageHeader } from "@/components/page-header";
 import { Disclosure } from "@/components/disclosure";
 import { FormField, fieldInputClass } from "@/components/form-field";
+import { AddressAutocomplete } from "@/components/address-autocomplete";
 import { formatCurrency, formatDate } from "@/lib/format";
 import { prisma } from "@/lib/prisma";
 import { requireLandlordId } from "@/lib/session";
@@ -28,13 +29,7 @@ export default async function PropertiesPage() {
         <form action={createProperty} className="grid gap-4 sm:grid-cols-2">
           <div className="sm:col-span-2">
             <FormField label="Address" htmlFor="address">
-              <input
-                id="address"
-                name="address"
-                type="text"
-                required
-                className={fieldInputClass}
-              />
+              <AddressAutocomplete id="address" name="address" required />
             </FormField>
           </div>
           <FormField label="Monthly rent" htmlFor="monthlyRent">
