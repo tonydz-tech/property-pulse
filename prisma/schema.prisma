@@ -44,6 +44,9 @@ model Landlord {
   passwordHash String
   createdAt    DateTime @default(now())
 
+  stripeAccountId    String?
+  stripeOnboarded    Boolean @default(false)
+
   properties Property[]
 
   @@map("landlords")
@@ -121,6 +124,9 @@ model RentPayment {
   dueDate    DateTime
   paidDate   DateTime?
   status     RentPaymentStatus @default(PENDING)
+
+  stripeCheckoutSessionId String?
+  stripePaymentIntentId   String?
 
   property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
 
